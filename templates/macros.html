@@ -1,0 +1,49 @@
+{# Sidebar macro — included by dashboard, upload, admin, etc. #}
+{% macro sidebar(user, active_page='') %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">🔒 SecureVault</div>
+    <div class="tagline">Secure File Management</div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="avatar">{{ user['username'][0].upper() }}</div>
+    <div>
+      <div class="sidebar-user-name">{{ user['username'] }}</div>
+      <span class="sidebar-user-role">{{ user['role'] }}</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Main</div>
+    <a href="{{ url_for('dashboard') }}"
+       class="nav-link {{ 'active' if active_page=='dashboard' }}">
+      <span class="icon">📁</span> Dashboard
+    </a>
+    <a href="{{ url_for('upload') }}"
+       class="nav-link {{ 'active' if active_page=='upload' }}">
+      <span class="icon">⬆️</span> Upload File
+    </a>
+
+    <div class="nav-section">Account</div>
+    <a href="{{ url_for('change_password_self') }}"
+       class="nav-link {{ 'active' if active_page=='password' }}">
+      <span class="icon">🔑</span> Change Password
+    </a>
+
+    {% if user['role'] == 'admin' %}
+    <div class="nav-section">Administration</div>
+    <a href="{{ url_for('admin_panel') }}"
+       class="nav-link {{ 'active' if active_page=='admin' }}">
+      <span class="icon">⚙️</span> Admin Panel
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-footer">
+    <form method="POST" action="{{ url_for('logout') }}">
+      <button type="submit" class="btn-logout">🔒 Sign Out</button>
+    </form>
+  </div>
+</aside>
+{% endmacro %}

@@ -1,0 +1,35 @@
+# SecureVault .gitignore
+
+# Environment / secrets — NEVER commit these
+.env
+*.env
+
+# Database (contains user data)
+instance/filestore.db
+instance/*.db
+
+# Uploaded files (user data)
+uploads/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Logs
+instance/*.log
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

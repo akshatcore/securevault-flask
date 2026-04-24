@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% from "macros.html" import sidebar %}
+{% block title %}Dashboard — SecureVault{% endblock %}
+{% block body %}
+<div class="layout">
+  {{ sidebar(user, 'dashboard') }}
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">📁 File Dashboard</span>
+      <div class="topbar-right">
+        <span>Logged in as <strong>{{ user['username'] }}</strong></span>
+        <span class="badge {{ 'admin' if user['role']=='admin' }}">{{ user['role'] }}</span>
+      </div>
+    </div>
+
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        <div class="flashes">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">
+            {{ '✅' if cat=='success' else ('⚠️' if cat=='danger' else 'ℹ️') }} {{ msg }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endwith %}
+
+      <!-- Stats row -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-icon">📄</span>
+          <div class="stat-label">Total Files</div>
+          <div class="stat-value">{{ files|length }}</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💾</span>
+          <div class="stat-label">Total Size</div>
+          <div class="stat-value" style="font-size:20px;margin-top:10px;">
+            {{ human_size(files|sum(attribute='size_bytes')) }}
+          </div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🔒</span>
+          <div class="stat-label">Security</div>
+          <div class="stat-value" style="font-size:14px;margin-top:10px;">Session Auth</div>
+        </div>
+      </div>
+
+      <!-- File table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Secure Files</span>
+          <a href="{{ url_for('upload') }}" class="btn btn-success btn-sm">⬆️ Upload New</a>
+        </div>
+
+        {% if files %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>File Name</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Uploaded By</th>
+                <th>Uploaded At</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in files %}
+              <tr>
+                <td style="color:var(--muted);">{{ f['id'] }}</td>
+                <td>
+                  <strong>{{ f['original_name'] }}</strong>
+                  {% if f['description'] %}
+                    <br><small style="color:var(--muted);">{{ f['description'] }}</small>
+                  {% endif %}
+                </td>
+                <td><span class="chip chip-blue">{{ f['mime_type'].split('/')[-1] }}</span></td>
+                <td style="white-space:nowrap;">{{ human_size(f['size_bytes']) }}</td>
+                <td>{{ f['uploader'] }}</td>
+                <td style="color:var(--muted);font-size:12px;">
+                  {{ f['uploaded_at'][:16].replace('T',' ') }} UTC
+                </td>
+                <td style="text-align:right;white-space:nowrap;">
+                  <a href="{{ url_for('download', file_id=f['id']) }}"
+                     class="btn btn-primary btn-sm">⬇ Download</a>
+                  {% if f['uploaded_by'] == user['id'] or user['role']=='admin' %}
+                  <form method="POST" action="{{ url_for('delete_file', file_id=f['id']) }}"
+                        style="display:inline;"
+                        onsubmit="return confirm('Delete \'{{ f['original_name'] }}\'? This cannot be undone.');">
+                    <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div style="font-size:48px;margin-bottom:12px;">📭</div>
+          No files uploaded yet.<br>
+          <a href="{{ url_for('upload') }}" class="btn btn-success" style="margin-top:14px;">Upload your first file</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

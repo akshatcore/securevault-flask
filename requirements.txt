@@ -1,0 +1,15 @@
+# Secure File Downloader — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework
+Flask>=3.0.0
+
+# Production WSGI server (use instead of Flask dev server in production)
+gunicorn>=21.2.0
+
+# Werkzeug ships with Flask — explicitly pin for security patches
+Werkzeug>=3.0.0
+
+# PDF report generation (optional — only needed to regenerate the report)
+reportlab>=4.0.0
+Pillow>=10.0.0

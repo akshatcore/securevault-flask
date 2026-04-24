@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% from "macros.html" import sidebar %}
+{% block title %}Admin Panel — SecureVault{% endblock %}
+{% block body %}
+<div class="layout">
+  {{ sidebar(user, 'admin') }}
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">⚙️ Admin Panel</span>
+      <div class="topbar-right">
+        <span class="badge admin">Administrator</span>
+      </div>
+    </div>
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        <div class="flashes">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">
+            {{ '✅' if cat=='success' else ('⚠️' if cat=='danger' else 'ℹ️') }} {{ msg }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endwith %}
+
+      <!-- Create user -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">➕ Create New User</span>
+        </div>
+        <form method="POST" action="{{ url_for('admin_create_user') }}"
+              style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="form-group" style="margin:0;flex:1;min-width:140px;">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="username" required>
+          </div>
+          <div class="form-group" style="margin:0;flex:1;min-width:140px;">
+            <label>Password (min 8 chars)</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+          </div>
+          <div class="form-group" style="margin:0;width:120px;">
+            <label>Role</label>
+            <select name="role">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-bottom:0;">Create</button>
+        </form>
+      </div>
+
+      <!-- User table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👥 Users</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Username</th><th>Role</th><th>Status</th>
+              <th>Created</th><th>Last Login</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+              <td>{{ u['id'] }}</td>
+              <td><strong>{{ u['username'] }}</strong></td>
+              <td>
+                <span class="chip {{ 'chip-orange' if u['role']=='admin' else 'chip-blue' }}">
+                  {{ u['role'] }}
+                </span>
+              </td>
+              <td>
+                <span class="chip {{ 'chip-green' if u['is_active'] else 'chip-red' }}">
+                  {{ 'Active' if u['is_active'] else 'Disabled' }}
+                </span>
+              </td>
+              <td style="font-size:12px;color:var(--muted);">{{ u['created_at'][:10] }}</td>
+              <td style="font-size:12px;color:var(--muted);">
+                {{ u['last_login'][:16].replace('T',' ') if u['last_login'] else '—' }}
+              </td>
+              <td style="white-space:nowrap;">
+                {% if u['id'] != user['id'] %}
+                <form method="POST"
+                      action="{{ url_for('admin_toggle_user', uid=u['id']) }}"
+                      style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-outline">
+                    {{ 'Disable' if u['is_active'] else 'Enable' }}
+                  </button>
+                </form>
+                {% endif %}
+                <!-- Reset password modal trigger -->
+                <button class="btn btn-sm btn-outline"
+                        onclick="showReset({{ u['id'] }}, '{{ u['username'] }}')">
+                  Reset PW
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Audit log -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Recent Login Audit Log</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Time (UTC)</th><th>Username</th><th>IP Address</th><th>Result</th>
+            </tr></thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+              <td style="font-size:12px;color:var(--muted);">{{ log['timestamp'][:19].replace('T',' ') }}</td>
+              <td>{{ log['username'] or '—' }}</td>
+              <td style="font-family:monospace;font-size:12px;">{{ log['ip_address'] }}</td>
+              <td>
+                <span class="chip {{ 'chip-green' if log['success'] else 'chip-red' }}">
+                  {{ 'Success' if log['success'] else 'Failed' }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if not logs %}
+            <tr><td colspan="4" class="empty-state">No login events recorded yet.</td></tr>
+            {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Password reset modal -->
+<div id="resetModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+     z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;position:relative;">
+    <h3 style="margin-bottom:16px;">Reset Password for <span id="resetName"></span></h3>
+    <form method="POST" id="resetForm">
+      <div class="form-group">
+        <label>New Password (min 8 chars)</label>
+        <input type="password" name="new_password" id="resetPw" required minlength="8">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button type="submit" class="btn btn-primary">Reset</button>
+        <button type="button" class="btn btn-outline" onclick="closeReset()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showReset(uid, name) {
+  document.getElementById('resetName').textContent = name;
+  document.getElementById('resetForm').action = '/admin/user/' + uid + '/reset-password';
+  document.getElementById('resetModal').style.display = 'flex';
+}
+function closeReset() {
+  document.getElementById('resetModal').style.display = 'none';
+}
+</script>
+{% endblock %}

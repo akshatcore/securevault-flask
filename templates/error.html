@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} — SecureVault{% endblock %}
+{% block body %}
+<style>
+  body { background:linear-gradient(135deg,#1a1a2e,#0f3460); display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .err { background:#fff; border-radius:20px; padding:48px 40px; max-width:420px; text-align:center; box-shadow:0 32px 80px rgba(0,0,0,.35); }
+  .err-code { font-size:72px; font-weight:900; color:var(--navy); line-height:1; }
+  .err-msg  { font-size:15px; color:#555; margin:12px 0 28px; }
+</style>
+<div class="err">
+  <div style="font-size:52px;margin-bottom:8px;">
+    {% if code==401 %}🔒{% elif code==403 %}🚫{% elif code==404 %}🔍{% elif code==413 %}📦{% else %}⚠️{% endif %}
+  </div>
+  <div class="err-code">{{ code }}</div>
+  <div class="err-msg">{{ message }}</div>
+  <a href="{{ url_for('login') }}" class="btn btn-primary">Go to Login</a>
+  &nbsp;
+  <a href="javascript:history.back()" class="btn btn-outline">Go Back</a>
+</div>
+{% endblock %}

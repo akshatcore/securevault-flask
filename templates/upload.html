@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% from "macros.html" import sidebar %}
+{% block title %}Upload File — SecureVault{% endblock %}
+{% block body %}
+<div class="layout">
+  {{ sidebar(user, 'upload') }}
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">⬆️ Upload File</span>
+      <div class="topbar-right">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+      </div>
+    </div>
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        <div class="flashes">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">
+            {{ '✅' if cat=='success' else ('⚠️' if cat=='danger' else 'ℹ️') }} {{ msg }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endwith %}
+
+      <div class="card" style="max-width:620px;">
+        <div class="card-header">
+          <span class="card-title">Upload a Secure File</span>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+          <div class="form-group">
+            <label>Select File</label>
+            <!-- Drop zone -->
+            <div id="dropZone" style="
+              border:2px dashed var(--border); border-radius:12px;
+              padding:40px 20px; text-align:center; cursor:pointer;
+              background:#fafbff; transition:border-color .2s,background .2s;
+            " onclick="document.getElementById('fileInput').click()">
+              <div style="font-size:40px;margin-bottom:10px;">📂</div>
+              <div style="font-weight:600;color:var(--dark);margin-bottom:4px;">
+                Drag & drop or click to browse
+              </div>
+              <div style="font-size:12px;color:var(--muted);">Max 100 MB per file</div>
+              <div id="fileName" style="margin-top:12px;font-size:13px;color:var(--navy);font-weight:600;"></div>
+            </div>
+            <input type="file" id="fileInput" name="file" required
+                   style="display:none;"
+                   accept=".pdf,.txt,.csv,.xlsx,.xls,.docx,.doc,.png,.jpg,.jpeg,.gif,.zip,.tar,.gz,.pptx,.mp4,.mp3,.json,.xml,.md">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description (optional)</label>
+            <input type="text" id="description" name="description"
+                   placeholder="Brief note about this file…" maxlength="255">
+            <div class="form-hint">Visible on the dashboard file listing.</div>
+          </div>
+
+          <!-- Upload progress bar (JS) -->
+          <div id="progressWrap" style="display:none;margin-bottom:16px;">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Uploading…</div>
+            <div style="background:var(--border);border-radius:99px;height:8px;overflow:hidden;">
+              <div id="progressBar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--navy),#4a9eff);transition:width .2s;border-radius:99px;"></div>
+            </div>
+            <div id="progressPct" style="font-size:12px;color:var(--muted);margin-top:4px;text-align:right;">0%</div>
+          </div>
+
+          <button type="submit" class="btn btn-success" style="width:100%;justify-content:center;padding:13px;" id="uploadBtn">
+            ⬆️ Upload Securely
+          </button>
+        </form>
+
+        <div style="margin-top:20px;padding:14px;background:var(--light);border-radius:8px;font-size:12px;color:var(--muted);">
+          <strong>Allowed types:</strong>
+          PDF, TXT, CSV, XLSX, XLS, DOCX, DOC, PNG, JPG, GIF, ZIP, TAR, GZ, PPTX, MP4, MP3, JSON, XML, MD
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileName  = document.getElementById('fileName');
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) {
+    fileName.textContent = '📎 ' + fileInput.files[0].name +
+      ' (' + (fileInput.files[0].size / 1024).toFixed(1) + ' KB)';
+    dropZone.style.borderColor = 'var(--navy)';
+    dropZone.style.background  = '#eef2ff';
+  }
+});
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.style.borderColor = 'var(--navy)';
+  dropZone.style.background  = '#eef2ff';
+});
+dropZone.addEventListener('dragleave', () => {
+  dropZone.style.borderColor = 'var(--border)';
+  dropZone.style.background  = '#fafbff';
+});
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  fileInput.files = e.dataTransfer.files;
+  fileInput.dispatchEvent(new Event('change'));
+});
+
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+  if (!fileInput.files[0]) return;
+  const btn  = document.getElementById('uploadBtn');
+  const wrap = document.getElementById('progressWrap');
+  const bar  = document.getElementById('progressBar');
+  const pct  = document.getElementById('progressPct');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  wrap.style.display = 'block';
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', window.location.href);
+  xhr.upload.onprogress = ev => {
+    if (ev.lengthComputable) {
+      const p = Math.round(ev.loaded / ev.total * 100);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+    }
+  };
+  xhr.onload = () => {
+    document.open(); document.write(xhr.responseText); document.close();
+  };
+  xhr.onerror = () => {
+    btn.disabled = false; btn.textContent = '⬆️ Upload Securely';
+    wrap.style.display = 'none';
+    alert('Upload failed. Please try again.');
+  };
+  const fd = new FormData(this);
+  xhr.send(fd);
+  e.preventDefault();
+});
+</script>
+{% endblock %}

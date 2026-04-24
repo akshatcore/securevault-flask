@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Login — SecureVault{% endblock %}
+{% block body %}
+<style>
+  body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%); display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .login-wrap { width:100%; max-width:420px; padding:20px; }
+  .login-card { background:#fff; border-radius:20px; padding:44px 40px; box-shadow:0 32px 80px rgba(0,0,0,.35); }
+  .login-logo  { text-align:center; margin-bottom:28px; }
+  .login-logo .lock { font-size:52px; display:block; }
+  .login-logo h1 { font-size:24px; font-weight:800; color:#1a1a2e; margin-top:8px; }
+  .login-logo p  { font-size:13px; color:#8892a4; margin-top:4px; }
+  .login-footer { text-align:center; margin-top:20px; font-size:11px; color:rgba(255,255,255,.35); }
+</style>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="lock">🔒</span>
+      <h1>SecureVault</h1>
+      <p>Secure authenticated file management</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}" style="margin-bottom:16px;">
+          {{ '⚠️' if cat=='danger' else ('✅' if cat=='success' else 'ℹ️') }} {{ msg }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}" autocomplete="off">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               placeholder="Enter your username" required autofocus>
+      </div>
+      <div class="form-group" style="margin-bottom:24px;">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"
+               placeholder="Enter your password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
+        🔓 Sign In Securely
+      </button>
+    </form>
+
+    <div style="margin-top:18px;padding:12px;background:#f0f2f8;border-radius:8px;font-size:12px;color:#8892a4;text-align:center;">
+      <strong>Default credentials</strong><br>
+      Admin: <code>admin</code> / <code>Admin@1234!</code><br>
+      Viewer: <code>viewer</code> / <code>Viewer@5678!</code><br>
+      <em style="font-size:10px;">Change these immediately after first login.</em>
+    </div>
+  </div>
+  <p class="login-footer">SecureVault v1.0 &mdash; Session-authenticated file storage</p>
+</div>
+{% endblock %}
