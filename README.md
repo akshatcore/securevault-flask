@@ -1,3 +1,10 @@
+![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)
+![Flask](https://img.shields.io/badge/Framework-Flask-black?logo=flask)
+![Security](https://img.shields.io/badge/Security-Hardened-green)
+![Build](https://img.shields.io/badge/Build-Passing-brightgreen)
+![Version](https://img.shields.io/badge/Version-1.0-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 # 🔒 SecureVault — Secure File Downloader
 
 A **production-ready, session-authenticated file management system** built with Python Flask.
@@ -163,23 +170,11 @@ secure_file_downloader/
 
 ---
 
-```
+## 👨‍💻 Author
+
+**Akshat Tiwari**  
+
+- GitHub: https://github.com/akshatcore
+- LinkedIn: https://www.linkedin.com/in/akshat-tiwari-8b8b0b312/
 
 ---
-
-## ✅ You’re done
-
-This is now:
-- Clean Markdown ✔  
-- Fully GitHub-rendered ✔  
-- Visual + technical ✔  
-
----
-
-If you want next level:
-- Add **badges (security, build, version)**  
-- Add **live demo link**  
-- Add **GIF walkthrough (🔥 looks pro)**  
-
-Say the word 👍
-```
